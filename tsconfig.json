@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "ES6", // Change to ES6 or ES5 based on your needs
+    "declaration": true,
+    "module": "CommonJS",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true // Enable this for compatibility with CommonJS imports
+  }
+}
