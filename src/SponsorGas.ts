@@ -125,6 +125,15 @@ class SponsorGas {
         await this.waitForChallengeWindowToClose();
     }
 
+    async getPaymasters (chainId:string,applicationContractAddress:string): Promise<Paymaster[]> {
+        const response = await fetch(`${BASE_API_URL}/chains/${chainId}/applications/${applicationContractAddress}/paymasters`)
+        if(response.ok){
+            const responseJson  =  await response.json()
+            return responseJson.paymasters;
+        }
+        return []
+    }
+
     async getPaymasterAndData(paymaster: Paymaster, _userOperation: Partial<UserOperation>, _chain: string, _entryPointContractAddress: string): Promise<string | null> {
         this.isChallengePending = true;
     
