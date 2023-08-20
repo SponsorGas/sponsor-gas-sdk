@@ -134,6 +134,15 @@ class SponsorGas {
         return []
     }
 
+    async getPaymaster (paymasterId:string): Promise<Paymaster | null> {
+        const response = await fetch(`${BASE_API_URL}/paymasters/${paymasterId}`)
+        if(response.ok){
+            const responseJson  =  await response.json()
+            return responseJson.paymaster;
+        }
+        return null
+    }
+
     async getPaymasterAndData(paymaster: Paymaster, _userOperation: Partial<UserOperation>, _chain: string, _entryPointContractAddress: string): Promise<string | null> {
         this.isChallengePending = true;
     
