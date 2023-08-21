@@ -1,6 +1,6 @@
 import { Paymaster, UserOperation } from "./model";
 import { defaultAbiCoder, keccak256 } from 'ethers/lib/utils';
-import { BASE_API_URL } from "./configuration";
+import { BASE_API_URL, BASE_ORIGIN } from "./configuration";
 
 class SponsorGas {
     private challengeWindow: Window | null;
@@ -40,7 +40,7 @@ class SponsorGas {
         const url = `${BASE_API_URL}/paymasters/${paymaster.paymasterAddress}/paymasterAndData`;
         const headers = {
             'Content-Type': 'application/json',
-            // 'Authorization': `Bearer ${accessToken}`,
+            credentials: 'include',
         };
 
         try {
@@ -148,6 +148,7 @@ class SponsorGas {
     
         const scopeId = this.calculateScopeId(_userOperation.sender!, _userOperation.initCode!, _userOperation.callData!, _chain, _entryPointContractAddress);
         const redirect_url = `${window.location.href}`;
+        // const origin= `${window.location.origin}`;
         const paymasterId = paymaster.id;
 
         const isNFTCriteria: boolean = this.checkIfNFTOrAssetTransferCriteria(paymaster);
@@ -160,7 +161,7 @@ class SponsorGas {
             
             const paymasterAndDataPromise = new Promise<string | null>((resolve) => {
                 const handleMessage = async (event: MessageEvent) => {
-                    if (event.origin === 'http://localhost:8001' && event.data.target === 'sponsor-gas') {
+                    if (event.origin === BASE_ORIGIN && event.data.target === 'sponsor-gas') {
                         const newData = event.data;
                         try {
                             const accessToken = await this.fetchAccessToken(paymaster, newData.data.AuthCode);
