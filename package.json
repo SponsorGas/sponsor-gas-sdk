@@ -1,13 +1,15 @@
 {
-  "name": "sponsor-gas-sdk",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "sponsor-gas-simple-sdk",
+  "version": "0.0.3",
+  "description": "sponsor-gas sdk for integration with applications",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "prepublish": "tsc"
   },
   "keywords": [],
-  "author": "",
+  "author": "Karandeep Singh",
   "license": "ISC",
   "devDependencies": {
     "typescript": "^5.1.6"

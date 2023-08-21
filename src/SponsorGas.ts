@@ -10,8 +10,8 @@ class SponsorGas {
         this.challengeWindow = null;
         this.isChallengePending = false;
     }
-		private checkIfNFTCriteria(paymaster:Paymaster) {
-			return paymaster.PaymasterCriteria?.some(pc => pc.type === 'nft_challenge') ?? false;
+		private checkIfNFTOrAssetTransferCriteria(paymaster:Paymaster) {
+			return paymaster.PaymasterCriteria?.some(pc => pc.type === 'nft_challenge'|| pc.type === 'native_asset_transfer') ?? false;
 		}
 
     private async fetchAccessToken(paymaster: Paymaster, authCode: string) {
@@ -150,7 +150,7 @@ class SponsorGas {
         const redirect_url = `${window.location.href}`;
         const paymasterId = paymaster.id;
 
-        const isNFTCriteria: boolean = this.checkIfNFTCriteria(paymaster);
+        const isNFTCriteria: boolean = this.checkIfNFTOrAssetTransferCriteria(paymaster);
         console.log(`isNFTCriteria : ${isNFTCriteria}`);
         console.log(paymaster);
 

@@ -62,7 +62,7 @@ export interface Application {
 	chainId: string;
 }
 
-interface Account {
+export interface Account {
 	id: string;
 	userId: string;
 	type: string;
@@ -80,7 +80,7 @@ interface Account {
 	user: User;
 }
 
-interface Session {
+export interface Session {
 	id: string;
 	sessionToken: string;
 	userId: string;
@@ -88,7 +88,7 @@ interface Session {
 	user: User;
 }
 
-interface User {
+export interface User {
 	id: string;
 	name: string | null;
 	email: string | null;
