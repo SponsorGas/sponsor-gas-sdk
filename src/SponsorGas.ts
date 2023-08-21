@@ -15,7 +15,6 @@ class SponsorGas {
 		}
 
     private async fetchAccessToken(paymaster: Paymaster, authCode: string) {
-        try {
             const response = await fetch(`${BASE_API_URL}/paymasters/${paymaster.paymasterAddress}/access_token`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -29,20 +28,14 @@ class SponsorGas {
                 console.error('Failed to fetch access token');
                 return false;
             }
-        } catch (error) {
-            console.error('An error occurred while fetching access token:', error);
-            return false;
-        }
     }
 
     private async fetchPaymasterAndData(paymaster: Paymaster, _userOperation: Partial<UserOperation>, _chain: string, _entryPointContractAddress: string): Promise<string | null> {
         const url = `${BASE_API_URL}/paymasters/${paymaster.paymasterAddress}/paymasterAndData`;
         const headers = {
             'Content-Type': 'application/json',
-            credentials: 'include',
         };
 
-        try {
             const response = await fetch(url, {
                 method: 'POST',
                 headers,
@@ -51,6 +44,7 @@ class SponsorGas {
                     'entryPoint': _entryPointContractAddress,
                     'chainId': _chain,
                 }),
+                credentials: 'include',
             });
 
             if (response.ok) {
@@ -60,10 +54,6 @@ class SponsorGas {
                 console.error(`paymasterAndData response: ${response.status}`);
                 return null;
             }
-        } catch (error) {
-            console.error('An error occurred while fetching paymaster and data:', error);
-            return null;
-        }
     }
 
     private async handleChallengeSubmission(paymaster: Paymaster, _userOperation: Partial<UserOperation>, _chain: string, _entryPointContractAddress: string): Promise<string | null> {
