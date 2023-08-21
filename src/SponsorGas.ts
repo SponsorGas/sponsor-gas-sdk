@@ -33,7 +33,6 @@ class SponsorGas {
             console.error('An error occurred while fetching access token:', error);
             return false;
         }
-				return false
     }
 
     private async fetchPaymasterAndData(paymaster: Paymaster, _userOperation: Partial<UserOperation>, _chain: string, _entryPointContractAddress: string): Promise<string | null> {
@@ -52,7 +51,6 @@ class SponsorGas {
                     'entryPoint': _entryPointContractAddress,
                     'chainId': _chain,
                 }),
-                credentials: 'include',
             });
 
             if (response.ok) {
@@ -72,36 +70,29 @@ class SponsorGas {
         const paymasterId = paymaster.id;
         const scopeId = this.calculateScopeId(_userOperation.sender!, _userOperation.initCode!, _userOperation.callData!, _chain, _entryPointContractAddress);
         const redirect_url = `${window.location.href}`;
+        const response = await fetch(`${paymaster.paymasterOffchainService}/challenges/nft/submit?paymasterId=${paymasterId}&scope=${scopeId}&redirect_url=${redirect_url}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userOperation: _userOperation }),
+        });
 
-        try {
-            const response = await fetch(`${paymaster.paymasterOffchainService}/challenges/nft/submit?paymasterId=${paymasterId}&scope=${scopeId}&redirect_url=${redirect_url}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userOperation: _userOperation }),
-            });
+        console.log(response);
 
-            console.log(response);
+        if (response.ok) {
+            const data = await response.json();
+            console.log(data);
+            const authCode = data.AuthCode;
 
-            if (response.ok) {
-                const data = await response.json();
-                console.log(data);
-                const authCode = data.AuthCode;
-
-                const accessToken = await this.fetchAccessToken(paymaster, authCode);
-                if (accessToken) {
-                    const paymasterAndData = await this.fetchPaymasterAndData(paymaster,  _userOperation, _chain, _entryPointContractAddress);
-                    return paymasterAndData;
-                } else {
-                    console.error('Failed Getting Access Code');
-                    return null;
-                }
+            const accessToken = await this.fetchAccessToken(paymaster, authCode);
+            if (accessToken) {
+                const paymasterAndData = await this.fetchPaymasterAndData(paymaster,  _userOperation, _chain, _entryPointContractAddress);
+                return paymasterAndData;
             } else {
-                console.error('Challenge submission failed.');
+                console.error('Failed Getting Access Code');
                 return null;
             }
-        } catch (e) {
-            console.error('An error occurred:', e);
-            return null;
+        } else {
+            throw new Error((await response.json()).message);
         }
     }
 
@@ -163,7 +154,6 @@ class SponsorGas {
                 const handleMessage = async (event: MessageEvent) => {
                     if (event.origin === BASE_ORIGIN && event.data.target === 'sponsor-gas') {
                         const newData = event.data;
-                        try {
                             const accessToken = await this.fetchAccessToken(paymaster, newData.data.AuthCode);
                             if (accessToken) {
                                 const paymasterAndData = await this.fetchPaymasterAndData(paymaster,  _userOperation, _chain, _entryPointContractAddress);
@@ -173,15 +163,10 @@ class SponsorGas {
                                 console.error('Failed Getting Access Code');
                                 resolve(null);
                             }
-                        } catch (error) {
-                            console.error('An error occurred:', error);
                             resolve(null);
-                        } finally {
-                            this.isChallengePending = false;
-                        }
+                            this.isChallengePending=false;
                     }
                 };
-
                 window.addEventListener('message', handleMessage);
                 this.waitForChallengeWindowToClose();
             });
@@ -192,6 +177,8 @@ class SponsorGas {
             this.isChallengePending = false;
             return paymasterAndData;
         }
+
+       
     }
 }
 
