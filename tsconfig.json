@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "jsx": "react",
     "target": "ES6", // Change to ES6 or ES5 based on your needs
     "declaration": true,
     "module": "CommonJS",
