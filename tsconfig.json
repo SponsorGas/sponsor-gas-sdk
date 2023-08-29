@@ -3,10 +3,11 @@
     "jsx": "react",
     "target": "ES6", // Change to ES6 or ES5 based on your needs
     "declaration": true,
-    "module": "CommonJS",
+    "module": "ESNext",
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
+    "moduleResolution": "Node",
     "esModuleInterop": true // Enable this for compatibility with CommonJS imports
   }
 }

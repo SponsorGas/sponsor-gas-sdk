@@ -1,13 +1,9 @@
 import React, {  createContext, useCallback, useContext, useRef, useState } from 'react';
 import { Paymaster, PaymasterCriteria, UserOperation } from '../../model';
-import QuestionChallenge from '../../component/QuestionChallenge';
-import VideoChallenge from '../../component/VideoChallenge';
-import NFTChallenge from '../../component/NFTChallenge';
-import IdentityChallenge from '../../component/IdentityChallenge';
-
+import { fetchAccessToken, fetchPaymasterAndData, submitChallengeResponse } from '../../api';
+import Challenge from '../../components/Challenges';
 
 interface SponsorGasContextProps {
-  getPaymasters:(chainId: string, applicationContractAddress: string) => Promise<Paymaster[]>
   getPaymasterAndData: (_userOperation:UserOperation,_chainId:string, _sponsorGasPaymaster:Paymaster,_entryPointContractAddress:string) =>  Promise<string | null>
 }
 
@@ -16,11 +12,9 @@ type SponsorGasProviderProps = {
 };
 
 export const SponsorGasContext = createContext<SponsorGasContextProps>({
-  getPaymasters:(chainId:string, applicationContractAddress:string) =>{ return Promise.resolve([]) },
   getPaymasterAndData: () => Promise.resolve(null), // Provide a default implementation
 });
 
-const BASE_API_URL = process.env.NEXT_PUBLIC_SPONSOR_GAS_BACKEND
 
 export function SponsorGasProvider({ children }: SponsorGasProviderProps) {
   const [challengeCriteria,setChallengeCriteria] = useState<PaymasterCriteria>()
@@ -32,53 +26,8 @@ export function SponsorGasProvider({ children }: SponsorGasProviderProps) {
   const [isChallengePending,setChallengePending] = useState(false)
   const [isOpen, setOpen] = useState(false);
 
-  const getRandomValue = (arr: { type: string; value: any; }[]) => arr[Math.floor(Math.random() * arr.length)];
-
   const paymasterAndDataPromiseResolver = useRef<(value: string | PromiseLike<string | null> | null) => void>()
   
-  
-  async function fetchAccessToken(paymaster: Paymaster, authCode: string) {
-    const response = await fetch(`${BASE_API_URL}/paymasters/${paymaster.paymasterAddress}/access_token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ auth_code: authCode }),
-        credentials: 'include',
-    });
-
-    if (response.ok) {
-        return true
-    } else {
-        console.error('Failed to fetch access token');
-        return false;
-    }
-  }
-
-  async function fetchPaymasterAndData(paymaster: Paymaster, _userOperation: Partial<UserOperation>, _chain: string, _entryPointContractAddress: string): Promise<string | null> {
-    const url = `${BASE_API_URL}/paymasters/${paymaster.paymasterAddress}/paymasterAndData`;
-    const headers = {
-        'Content-Type': 'application/json',
-    };
-    const response = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-            _userOperation,
-            'entryPoint': _entryPointContractAddress,
-            'chainId': _chain,
-        }),
-        credentials: 'include',
-    });
-
-    if (response.ok) {
-        const responseData = await response.json();
-        console.log(`fetchPaymasterAndData : ${responseData.userOperation}`)
-        return responseData.userOperation.paymasterAndData;
-    } else {
-        console.error(`paymasterAndData response: ${response.status}`);
-        return null;
-    }
-  }
-
   const handleChallengeClose = async (authCode: string) => {
     if (sponsorGasPaymaster && userOperation && chainId && entryPointContractAddress) {
       const accessToken = await fetchAccessToken(sponsorGasPaymaster, authCode);
@@ -116,56 +65,31 @@ export function SponsorGasProvider({ children }: SponsorGasProviderProps) {
       }
     }
   };
-
-  const submitChallengeResponse = async (challengeType: string, challengeResponse?: any) => {
-    try {
-      const response = await fetch(`${BASE_API_URL}/challenges/${challengeType}/submit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body:  challengeResponse && JSON.stringify(challengeResponse),
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        return data;
-      } else {
-        console.error('Challenge submission failed.');
-        return null;
-      }
-    } catch (error) {
-      console.error('An error occurred:', error);
-      return null;
-    }
-  };
-
+  
   const handleSubmit = async (data:any) => {
     let submissionResult :any ;
-    try {
+    const paymasterId = sponsorGasPaymaster!.id
+    const forUserOperation = userOperation
       if (challengeCriteria?.type === 'question_challenge'){
         if(data) {
-          const challengeResponse = { answer: data };
-          submissionResult = await submitChallengeResponse('question',challengeResponse);
+          const challengeResponse = {data: { answer: data }};
+          submissionResult = await submitChallengeResponse(paymasterId,'question',challengeResponse);
         }else{
           console.error('Please select an answer before submitting.');
         }
       } else if(challengeCriteria?.type === 'video_challenge') {
-          submissionResult = await submitChallengeResponse('video');
+          submissionResult = await submitChallengeResponse(paymasterId,'video');
       }else if(challengeCriteria?.type === 'identity_challenge') {
-        submissionResult = await submitChallengeResponse('identity',data);
+        submissionResult = await submitChallengeResponse(paymasterId,'identity',{data});
       } else if(challengeCriteria?.type === 'nft_challenge') {
-        submissionResult = await submitChallengeResponse('nft');
+        submissionResult = await submitChallengeResponse(paymasterId,'nft');
       } 
       if(submissionResult)
         handleChallengeClose(submissionResult.AuthCode)
       else{
         console.log('Incorrect Response or failed to submit response')
       }
-    } catch (error) {
-      console.error('Failed to submit challenge:', error);
-    }
+    
   };
 
   const getPaymasterAndData = useCallback((_userOperation: Partial<UserOperation>,_chainId:string, _sponsorGasPaymaster:Paymaster,_entryPointContractAddress: string): Promise<string | null> => {
@@ -196,27 +120,23 @@ export function SponsorGasProvider({ children }: SponsorGasProviderProps) {
     return paymasterAndDataPromise;
   },[])
 
-  const getPaymasters = useCallback(async (chainId:string,applicationContractAddress:string): Promise<Paymaster[]> => {
-    const response = await fetch(`${BASE_API_URL}/chains/${chainId}/applications/${applicationContractAddress}/paymasters`)
-    if(response.ok){
-        const responseJson  =  await response.json()
-        return responseJson.paymasters;
+  const handleModalClose = () => {
+    let resolver = paymasterAndDataPromiseResolver.current
+    if(resolver){
+      resolver(null)
+      paymasterAndDataPromiseResolver.current = undefined
     }
-    return []
-  },[])
+    setOpen(false)
+  }
 
   const contextValue = {
-    getPaymasters,
     getPaymasterAndData
   };
 
   return (
     <SponsorGasContext.Provider value={contextValue}>
       {children}
-      { (challengeCriteria && challengeCriteria.type === 'question_challenge') && <QuestionChallenge paymaster={sponsorGasPaymaster!} isOpen={isOpen} handleSubmit={handleSubmit} />}
-      { (challengeCriteria && challengeCriteria.type === 'video_challenge') && <VideoChallenge paymaster={sponsorGasPaymaster!} isOpen={isOpen} handleSubmit={handleSubmit} setOpen={setOpen} />}
-      { (challengeCriteria && challengeCriteria.type === 'nft_challenge') && <NFTChallenge paymaster={sponsorGasPaymaster!} isOpen={isOpen} handleSubmit={handleSubmit} />}
-      { (challengeCriteria && challengeCriteria.type === 'identity_challenge') && <IdentityChallenge paymaster={sponsorGasPaymaster!} isOpen={isOpen} handleSubmit={handleSubmit} />}
+      {challengeCriteria && <Challenge paymaster={sponsorGasPaymaster!} isOpen={isOpen} handleSubmit={handleSubmit} type={challengeCriteria.type} handleModalClose={handleModalClose} />}
     </SponsorGasContext.Provider>
 
   );
