@@ -5,7 +5,7 @@
     "declaration": true,
     "module": "ESNext",
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./",
     "strict": true,
     "moduleResolution": "Node",
     "esModuleInterop": true // Enable this for compatibility with CommonJS imports

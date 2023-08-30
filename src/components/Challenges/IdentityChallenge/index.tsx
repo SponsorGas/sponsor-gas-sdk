@@ -25,15 +25,13 @@ export default function IdentityChallenge ({identityPayload,handleSubmit}:Identi
       await handleSubmit(challengeSubmitData)
   }
 
-  return (
-    <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-      <h2 className='text-xl font-semibold'>Identity Challenge</h2>
-      <div className="sm:flex sm:items-start">
-        <div>
-          {identityPayload && (
-            <div>
-              <h1>Sybil Resistant Identity!</h1>
-              <p>Prove you are a human via Worldcoin.</p>
+  if(identityPayload){
+    return (
+      <div className="px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+        <h2 className='text-xl font-semibold'>Identity Challenge</h2>
+        <div className="sm:flex sm:items-start ">
+            <p className='py-2'>Prove you are a human via Worldcoin </p>
+            <div className="bg-blue-500 text-white py-2 px-4 rounded-md ml-2">
               <IDKitWidget
                 app_id={identityPayload.app_id} // obtained from the Developer Portal
                 action={identityPayload.action} // this is your action name from the Developer Portal
@@ -45,9 +43,15 @@ export default function IdentityChallenge ({identityPayload,handleSubmit}:Identi
                 {({ open }) => <button onClick={open}>Verify with World ID</button>}
               </IDKitWidget>
             </div>
-          )}
         </div>
       </div>
-    </div>
-  );
+    );
+  }else{
+    return (
+      <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+        <h2 className='text-xl font-semibold'>Error Getting Identity Provider</h2>
+      </div>
+    );
+  }
+ 
 };

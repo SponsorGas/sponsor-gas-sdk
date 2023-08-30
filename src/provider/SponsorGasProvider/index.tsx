@@ -72,8 +72,7 @@ export function SponsorGasProvider({ children }: SponsorGasProviderProps) {
     const forUserOperation = userOperation
       if (challengeCriteria?.type === 'question_challenge'){
         if(data) {
-          const challengeResponse = {data: { answer: data }};
-          submissionResult = await submitChallengeResponse(paymasterId,'question',challengeResponse);
+          submissionResult = await submitChallengeResponse(paymasterId,'question',{data: { answer: data }});
         }else{
           console.error('Please select an answer before submitting.');
         }
@@ -82,7 +81,7 @@ export function SponsorGasProvider({ children }: SponsorGasProviderProps) {
       }else if(challengeCriteria?.type === 'identity_challenge') {
         submissionResult = await submitChallengeResponse(paymasterId,'identity',{data});
       } else if(challengeCriteria?.type === 'nft_challenge') {
-        submissionResult = await submitChallengeResponse(paymasterId,'nft');
+        submissionResult = await submitChallengeResponse(paymasterId,'nft',{data: {userOperation:forUserOperation}});
       } 
       if(submissionResult)
         handleChallengeClose(submissionResult.AuthCode)

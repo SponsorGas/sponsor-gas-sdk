@@ -18,8 +18,8 @@ export default function VideoChallenge ({videoUrl,handleSubmit}:VideoChallengePr
    <>
    <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
       <h2 className='text-xl font-semibold'>Video Challenge</h2>
-      <div className="sm:flex sm:items-center sm:justify-center">
-      <div>
+      <div className="sm:flex sm:items-center  sm:justify-center">
+      <div className=''>
           {videoUrl && (
             <video id="videoPlayer" controls 
                 controlsList="nofullscreen nodownload noremoteplayback noplaybackrate"
