@@ -1,6 +1,6 @@
 {
   "name": "sponsor-gas-sdk",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "sponsor-gas sdk for integration with applications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
